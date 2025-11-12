@@ -1,0 +1,243 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --foreground-rgb: 0, 0, 0;
+    --background-start-rgb: 255, 255, 255;
+    --background-end-rgb: 255, 255, 255;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --foreground-rgb: 255, 255, 255;
+      --background-start-rgb: 0, 0, 0;
+      --background-end-rgb: 0, 0, 0;
+    }
+  }
+}
+
+@layer utilities {
+  /* Custom scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-gray-100 rounded-lg;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-gray-400 rounded-lg hover:bg-gray-500;
+  }
+
+  /* Hide scrollbar */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* 3D Card Effect */
+  .card-3d {
+    transform-style: preserve-3d;
+    transform: perspective(1000px);
+  }
+
+  .card-3d-hover {
+    transition: transform 0.5s;
+  }
+
+  .card-3d-hover:hover {
+    transform: perspective(1000px) rotateY(-5deg) rotateX(5deg) scale(1.05);
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary-600 to-accent-500 bg-clip-text text-transparent;
+  }
+
+  /* Glass effect */
+  .glass {
+    @apply bg-white bg-opacity-80 backdrop-blur-lg;
+  }
+
+  /* Loading skeleton */
+  .skeleton {
+    @apply bg-gray-200 animate-pulse rounded;
+  }
+
+  /* Print styles */
+  @media print {
+    .no-print {
+      display: none !important;
+    }
+
+    .print-only {
+      display: block !important;
+    }
+
+    body {
+      font-size: 12pt;
+    }
+
+    .receipt-print {
+      width: 80mm;
+      margin: 0;
+      padding: 0;
+      font-family: monospace;
+    }
+  }
+}
+
+/* Custom animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 5px rgba(14, 165, 233, 0.5); }
+  50% { box-shadow: 0 0 20px rgba(14, 165, 233, 0.8), 0 0 30px rgba(14, 165, 233, 0.6); }
+}
+
+.float-animation {
+  animation: float 3s ease-in-out infinite;
+}
+
+.glow-animation {
+  animation: glow 2s ease-in-out infinite;
+}
+
+/* Product card 3D tilt effect */
+.product-card {
+  transition: all 0.3s ease;
+  transform-style: preserve-3d;
+}
+
+.product-card:hover {
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.1),
+    0 10px 20px rgba(0, 0, 0, 0.08);
+}
+
+.product-card-image {
+  transition: transform 0.3s ease;
+}
+
+.product-card:hover .product-card-image {
+  transform: translateZ(20px) scale(1.05);
+}
+
+/* Cart drawer animation */
+.cart-drawer-enter {
+  transform: translateX(100%);
+}
+
+.cart-drawer-enter-active {
+  transform: translateX(0);
+  transition: transform 300ms ease-out;
+}
+
+.cart-drawer-exit {
+  transform: translateX(0);
+}
+
+.cart-drawer-exit-active {
+  transform: translateX(100%);
+  transition: transform 300ms ease-in;
+}
+
+/* Toast notifications */
+.toast-enter {
+  animation: slideUp 0.3s ease-out;
+}
+
+.toast-exit {
+  animation: slideDown 0.3s ease-in;
+}
+
+/* Loading dots */
+.loading-dots {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.loading-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: currentColor;
+  animation: loading-dot 1.4s ease-in-out infinite;
+}
+
+.loading-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.loading-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes loading-dot {
+  0%, 60%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+/* Button hover effects */
+.btn-hover-lift {
+  transition: all 0.2s ease;
+}
+
+.btn-hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Input focus effects */
+.input-focus-glow {
+  transition: all 0.2s ease;
+}
+
+.input-focus-glow:focus {
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+}
+
+/* Badge animations */
+.badge-pulse {
+  position: relative;
+}
+
+.badge-pulse::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: inherit;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
