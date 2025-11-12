@@ -15,7 +15,7 @@ const sizeClasses = {
   xl: 'h-12 w-12',
 }
 
-export default function Spinner({ size = 'md', className, label }: SpinnerProps) {
+export function Spinner({ size = 'md', className, label }: SpinnerProps) {
   return (
     <div className="flex flex-col items-center justify-center gap-3">
       <div className="relative">
@@ -35,6 +35,9 @@ export default function Spinner({ size = 'md', className, label }: SpinnerProps)
     </div>
   )
 }
+
+// Default export for convenience
+export default Spinner
 
 export function LoadingDots({ className }: { className?: string }) {
   return (
