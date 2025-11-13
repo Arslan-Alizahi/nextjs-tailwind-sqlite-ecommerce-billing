@@ -135,6 +135,18 @@ export const createTables = `
     FOREIGN KEY (parent_id) REFERENCES nav_items(id) ON DELETE CASCADE
   );
 
+  -- Social media links table
+  CREATE TABLE IF NOT EXISTS social_media_links (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    platform TEXT NOT NULL,
+    url TEXT NOT NULL,
+    icon TEXT NOT NULL,
+    display_order INTEGER DEFAULT 0,
+    is_active INTEGER DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
   -- Indexes for better performance
   CREATE INDEX IF NOT EXISTS idx_products_category ON products(category_id);
   CREATE INDEX IF NOT EXISTS idx_products_sku ON products(sku);
@@ -146,6 +158,7 @@ export const createTables = `
   CREATE INDEX IF NOT EXISTS idx_receipts_number ON billing_receipts(receipt_number);
   CREATE INDEX IF NOT EXISTS idx_nav_items_parent ON nav_items(parent_id);
   CREATE INDEX IF NOT EXISTS idx_nav_items_location ON nav_items(location);
+  CREATE INDEX IF NOT EXISTS idx_social_media_display_order ON social_media_links(display_order);
 `;
 
 export const createTriggers = `
@@ -175,5 +188,12 @@ export const createTriggers = `
   AFTER UPDATE ON nav_items
   BEGIN
     UPDATE nav_items SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+  END;
+
+  -- Update timestamp trigger for social_media_links
+  CREATE TRIGGER IF NOT EXISTS update_social_media_timestamp
+  AFTER UPDATE ON social_media_links
+  BEGIN
+    UPDATE social_media_links SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
   END;
 `;

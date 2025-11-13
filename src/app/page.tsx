@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import Navbar from '@/components/layout/Navbar'
+import Footer from '@/components/layout/Footer'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
@@ -231,18 +232,7 @@ export default function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <p className="text-gray-400">© 2024 ModernStore. All rights reserved.</p>
-            <div className="mt-4 space-x-4">
-              <Link href="/policies/terms" className="text-gray-400 hover:text-white">Terms</Link>
-              <Link href="/policies/privacy" className="text-gray-400 hover:text-white">Privacy</Link>
-              <Link href="/policies/returns" className="text-gray-400 hover:text-white">Returns</Link>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

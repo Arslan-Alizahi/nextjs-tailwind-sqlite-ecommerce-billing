@@ -12,22 +12,26 @@ import { StatusBadge, StockBadge } from '@/components/ui/Badge'
 import { useToast } from '@/components/ui/Toast'
 import {
   Package, ShoppingCart, DollarSign, TrendingUp,
-  Plus, Edit2, Trash2, Eye, Settings
+  Plus, Edit2, Trash2, Eye, Settings, Share2
 } from 'lucide-react'
 import { formatCurrency, slugify, generateSKU } from '@/lib/utils'
 import { Product } from '@/types/product'
 import { Category } from '@/types/category'
+import { SocialMediaLink } from '@/types/social-media'
 
 export default function AdminPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [orders, setOrders] = useState<any[]>([])
   const [receipts, setReceipts] = useState<any[]>([])
+  const [socialLinks, setSocialLinks] = useState<SocialMediaLink[]>([])
   const [activeTab, setActiveTab] = useState('dashboard')
   const [productModal, setProductModal] = useState(false)
   const [categoryModal, setCategoryModal] = useState(false)
+  const [socialModal, setSocialModal] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
+  const [editingSocial, setEditingSocial] = useState<SocialMediaLink | null>(null)
   const { addToast } = useToast()
 
   // Form states
@@ -45,6 +49,14 @@ export default function AdminPage() {
     name: '',
     description: '',
     parent_id: '',
+  })
+
+  const [socialForm, setSocialForm] = useState({
+    platform: '',
+    url: '',
+    icon: '',
+    display_order: 0,
+    is_active: true,
   })
 
   useEffect(() => {
@@ -83,6 +95,14 @@ export default function AdminPage() {
         if (data.success) setReceipts(data.data || [])
       })
       .catch(error => console.error('Error fetching receipts:', error))
+
+    // Fetch social media links
+    fetch('/api/social-media')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) setSocialLinks(data.data.links || [])
+      })
+      .catch(error => console.error('Error fetching social links:', error))
   }
 
   const saveProduct = async () => {
@@ -189,6 +209,65 @@ export default function AdminPage() {
     }
   }
 
+  const saveSocial = async () => {
+    try {
+      const url = editingSocial
+        ? `/api/social-media/${editingSocial.id}`
+        : '/api/social-media'
+
+      const method = editingSocial ? 'PUT' : 'POST'
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...socialForm,
+          is_active: socialForm.is_active ? 1 : 0,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (data.success) {
+        addToast(editingSocial ? 'Social link updated' : 'Social link created', 'success')
+        setSocialModal(false)
+        setEditingSocial(null)
+        setSocialForm({
+          platform: '',
+          url: '',
+          icon: '',
+          display_order: 0,
+          is_active: true,
+        })
+        fetchData()
+      } else {
+        addToast(data.message || 'Failed to save social link', 'error')
+      }
+    } catch (error) {
+      console.error('Error saving social link:', error)
+      addToast('Failed to save social link', 'error')
+    }
+  }
+
+  const deleteSocial = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this social media link?')) return
+
+    try {
+      const res = await fetch(`/api/social-media/${id}`, { method: 'DELETE' })
+      const data = await res.json()
+
+      if (data.success) {
+        addToast('Social link deleted', 'success')
+        fetchData()
+      } else {
+        addToast('Failed to delete social link', 'error')
+      }
+    } catch (error) {
+      console.error('Error deleting social link:', error)
+      addToast('Failed to delete social link', 'error')
+    }
+  }
+
   // Calculate stats
   const totalProducts = products.length
   const totalOrders = orders.length
@@ -200,6 +279,7 @@ export default function AdminPage() {
     { id: 'products', label: 'Products', icon: Package },
     { id: 'categories', label: 'Categories', icon: Settings },
     { id: 'orders', label: 'Orders', icon: ShoppingCart },
+    { id: 'social', label: 'Social Media', icon: Share2 },
   ]
 
   return (
@@ -476,6 +556,116 @@ export default function AdminPage() {
             </div>
           </Card>
         )}
+
+        {/* Social Media */}
+        {activeTab === 'social' && (
+          <div>
+            <div className="flex justify-between mb-4">
+              <h2 className="text-xl font-semibold">Social Media Links</h2>
+              <Button
+                variant="primary"
+                leftIcon={<Plus className="h-4 w-4" />}
+                onClick={() => {
+                  setEditingSocial(null)
+                  setSocialForm({
+                    platform: '',
+                    url: '',
+                    icon: '',
+                    display_order: 0,
+                    is_active: true,
+                  })
+                  setSocialModal(true)
+                }}
+              >
+                Add Social Link
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {socialLinks.map((link) => (
+                <Card key={link.id}>
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="bg-gradient-to-br from-primary-500 to-primary-700 p-3 rounded-lg">
+                          <Share2 className="h-6 w-6 text-white" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-lg">{link.platform}</h3>
+                          <p className="text-sm text-gray-500">Order: {link.display_order}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => {
+                            setEditingSocial(link)
+                            setSocialForm({
+                              platform: link.platform,
+                              url: link.url,
+                              icon: link.icon,
+                              display_order: link.display_order,
+                              is_active: link.is_active === 1,
+                            })
+                            setSocialModal(true)
+                          }}
+                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                        >
+                          <Edit2 className="h-4 w-4 text-blue-600" />
+                        </button>
+                        <button
+                          onClick={() => deleteSocial(link.id)}
+                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                        >
+                          <Trash2 className="h-4 w-4 text-red-600" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center text-sm">
+                        <span className="text-gray-500 w-16">Icon:</span>
+                        <span className="font-mono bg-gray-100 px-2 py-1 rounded text-xs">
+                          {link.icon}
+                        </span>
+                      </div>
+                      <div className="flex items-center text-sm">
+                        <span className="text-gray-500 w-16">URL:</span>
+                        <a
+                          href={link.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary-600 hover:underline truncate flex-1"
+                        >
+                          {link.url}
+                        </a>
+                      </div>
+                      <div className="flex items-center text-sm">
+                        <span className="text-gray-500 w-16">Status:</span>
+                        <span
+                          className={`px-2 py-1 rounded text-xs font-medium ${
+                            link.is_active
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-gray-100 text-gray-600'
+                          }`}
+                        >
+                          {link.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+
+              {socialLinks.length === 0 && (
+                <div className="col-span-full text-center py-12 text-gray-500">
+                  <Share2 className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                  <p>No social media links yet.</p>
+                  <p className="text-sm mt-2">Click "Add Social Link" to get started.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Product Modal */}
@@ -590,6 +780,76 @@ export default function AdminPage() {
             </Button>
             <Button variant="primary" onClick={saveCategory} fullWidth>
               {editingCategory ? 'Update' : 'Create'} Category
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Social Media Modal */}
+      <Modal
+        isOpen={socialModal}
+        onClose={() => setSocialModal(false)}
+        title={editingSocial ? 'Edit Social Link' : 'Add Social Link'}
+      >
+        <div className="space-y-4">
+          <Input
+            label="Platform Name"
+            value={socialForm.platform}
+            onChange={(e) => setSocialForm({ ...socialForm, platform: e.target.value })}
+            placeholder="e.g., Facebook, Instagram, Twitter"
+            required
+          />
+
+          <Input
+            label="URL"
+            value={socialForm.url}
+            onChange={(e) => setSocialForm({ ...socialForm, url: e.target.value })}
+            placeholder="https://facebook.com/yourpage"
+            required
+          />
+
+          <Select
+            label="Icon"
+            value={socialForm.icon}
+            onChange={(e) => setSocialForm({ ...socialForm, icon: e.target.value })}
+            options={[
+              { value: '', label: 'Select an icon' },
+              { value: 'facebook', label: 'Facebook' },
+              { value: 'instagram', label: 'Instagram' },
+              { value: 'twitter', label: 'Twitter / X' },
+              { value: 'linkedin', label: 'LinkedIn' },
+              { value: 'youtube', label: 'YouTube' },
+            ]}
+            required
+          />
+
+          <Input
+            label="Display Order"
+            type="number"
+            value={socialForm.display_order.toString()}
+            onChange={(e) => setSocialForm({ ...socialForm, display_order: parseInt(e.target.value) || 0 })}
+            helperText="Lower numbers appear first"
+          />
+
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="social-active"
+              checked={socialForm.is_active}
+              onChange={(e) => setSocialForm({ ...socialForm, is_active: e.target.checked })}
+              className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+            />
+            <label htmlFor="social-active" className="text-sm font-medium text-gray-700">
+              Active
+            </label>
+          </div>
+
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={() => setSocialModal(false)} fullWidth>
+              Cancel
+            </Button>
+            <Button variant="primary" onClick={saveSocial} fullWidth>
+              {editingSocial ? 'Update' : 'Create'} Link
             </Button>
           </div>
         </div>

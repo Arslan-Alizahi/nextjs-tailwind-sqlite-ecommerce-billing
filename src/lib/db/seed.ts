@@ -413,5 +413,23 @@ export const seedDatabase = (db: Database.Database) => {
     insertFooterNav.run(item.label, item.href, item.display_order)
   })
 
+  // Add social media links
+  const socialMediaLinks = [
+    { platform: 'Facebook', url: 'https://facebook.com/modernstore', icon: 'facebook', display_order: 0 },
+    { platform: 'Instagram', url: 'https://instagram.com/modernstore', icon: 'instagram', display_order: 1 },
+    { platform: 'Twitter', url: 'https://twitter.com/modernstore', icon: 'twitter', display_order: 2 },
+    { platform: 'LinkedIn', url: 'https://linkedin.com/company/modernstore', icon: 'linkedin', display_order: 3 },
+    { platform: 'YouTube', url: 'https://youtube.com/@modernstore', icon: 'youtube', display_order: 4 },
+  ]
+
+  const insertSocialMedia = db.prepare(`
+    INSERT INTO social_media_links (platform, url, icon, display_order, is_active)
+    VALUES (?, ?, ?, ?, 1)
+  `)
+
+  socialMediaLinks.forEach((item) => {
+    insertSocialMedia.run(item.platform, item.url, item.icon, item.display_order)
+  })
+
   console.log('Database seeded successfully!')
 }
