@@ -10,9 +10,11 @@ import Select from '@/components/ui/Select'
 import Modal from '@/components/ui/Modal'
 import { StatusBadge, StockBadge } from '@/components/ui/Badge'
 import { useToast } from '@/components/ui/Toast'
+import { ImageUpload } from '@/components/ui/ImageUpload'
+import { AdminAuth } from '@/components/ui/AdminAuth'
 import {
   Package, ShoppingCart, DollarSign, TrendingUp,
-  Plus, Edit2, Trash2, Eye, Settings, Share2
+  Plus, Edit2, Trash2, Eye, Settings, Share2, Menu
 } from 'lucide-react'
 import { formatCurrency, slugify, generateSKU } from '@/lib/utils'
 import { Product } from '@/types/product'
@@ -25,13 +27,16 @@ export default function AdminPage() {
   const [orders, setOrders] = useState<any[]>([])
   const [receipts, setReceipts] = useState<any[]>([])
   const [socialLinks, setSocialLinks] = useState<SocialMediaLink[]>([])
+  const [navItems, setNavItems] = useState<any[]>([])
   const [activeTab, setActiveTab] = useState('dashboard')
   const [productModal, setProductModal] = useState(false)
   const [categoryModal, setCategoryModal] = useState(false)
   const [socialModal, setSocialModal] = useState(false)
+  const [navModal, setNavModal] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
   const [editingSocial, setEditingSocial] = useState<SocialMediaLink | null>(null)
+  const [editingNav, setEditingNav] = useState<any | null>(null)
   const { addToast } = useToast()
 
   // Form states
@@ -43,6 +48,7 @@ export default function AdminPage() {
     price: '',
     stock_quantity: '',
     is_featured: false,
+    image_url: '',
   })
 
   const [categoryForm, setCategoryForm] = useState({
@@ -57,6 +63,18 @@ export default function AdminPage() {
     icon: '',
     display_order: 0,
     is_active: true,
+  })
+
+  const [navForm, setNavForm] = useState({
+    label: '',
+    href: '',
+    parent_id: '',
+    type: 'link',
+    target: '_self',
+    icon: '',
+    display_order: 0,
+    is_active: true,
+    location: 'header',
   })
 
   useEffect(() => {
@@ -103,6 +121,14 @@ export default function AdminPage() {
         if (data.success) setSocialLinks(data.data.links || [])
       })
       .catch(error => console.error('Error fetching social links:', error))
+
+    // Fetch navigation items
+    fetch('/api/nav')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) setNavItems(data.data || [])
+      })
+      .catch(error => console.error('Error fetching nav items:', error))
   }
 
   const saveProduct = async () => {
@@ -113,17 +139,28 @@ export default function AdminPage() {
 
       const method = editingProduct ? 'PUT' : 'POST'
 
+      const payload: any = {
+        ...productForm,
+        price: parseFloat(productForm.price),
+        stock_quantity: parseInt(productForm.stock_quantity),
+        category_id: parseInt(productForm.category_id),
+        sku: productForm.sku || generateSKU(productForm.name),
+        slug: slugify(productForm.name),
+      }
+
+      // Add image if provided
+      if (productForm.image_url) {
+        payload.images = [{
+          image_url: productForm.image_url,
+          is_primary: true,
+          display_order: 1,
+        }]
+      }
+
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...productForm,
-          price: parseFloat(productForm.price),
-          stock_quantity: parseInt(productForm.stock_quantity),
-          category_id: parseInt(productForm.category_id),
-          sku: productForm.sku || generateSKU(productForm.name),
-          slug: slugify(productForm.name),
-        }),
+        body: JSON.stringify(payload),
       })
 
       const data = await res.json()
@@ -140,6 +177,7 @@ export default function AdminPage() {
           price: '',
           stock_quantity: '',
           is_featured: false,
+          image_url: '',
         })
         fetchData()
       } else {
@@ -268,6 +306,70 @@ export default function AdminPage() {
     }
   }
 
+  const saveNav = async () => {
+    try {
+      const url = editingNav
+        ? `/api/nav/${editingNav.id}`
+        : '/api/nav'
+
+      const method = editingNav ? 'PUT' : 'POST'
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...navForm,
+          parent_id: navForm.parent_id || null,
+          is_active: navForm.is_active ? 1 : 0,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (data.success) {
+        addToast(editingNav ? 'Nav item updated' : 'Nav item created', 'success')
+        setNavModal(false)
+        setEditingNav(null)
+        setNavForm({
+          label: '',
+          href: '',
+          parent_id: '',
+          type: 'link',
+          target: '_self',
+          icon: '',
+          display_order: 0,
+          is_active: true,
+          location: 'header',
+        })
+        fetchData()
+      } else {
+        addToast(data.message || 'Failed to save nav item', 'error')
+      }
+    } catch (error) {
+      console.error('Error saving nav item:', error)
+      addToast('Failed to save nav item', 'error')
+    }
+  }
+
+  const deleteNav = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this navigation item?')) return
+
+    try {
+      const res = await fetch(`/api/nav/${id}`, { method: 'DELETE' })
+      const data = await res.json()
+
+      if (data.success) {
+        addToast('Nav item deleted', 'success')
+        fetchData()
+      } else {
+        addToast('Failed to delete nav item', 'error')
+      }
+    } catch (error) {
+      console.error('Error deleting nav item:', error)
+      addToast('Failed to delete nav item', 'error')
+    }
+  }
+
   // Calculate stats
   const totalProducts = products.length
   const totalOrders = orders.length
@@ -279,12 +381,14 @@ export default function AdminPage() {
     { id: 'products', label: 'Products', icon: Package },
     { id: 'categories', label: 'Categories', icon: Settings },
     { id: 'orders', label: 'Orders', icon: ShoppingCart },
+    { id: 'navigation', label: 'Navigation', icon: Menu },
     { id: 'social', label: 'Social Media', icon: Share2 },
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
+    <AdminAuth>
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
@@ -436,6 +540,7 @@ export default function AdminPage() {
                                   price: product.price.toString(),
                                   stock_quantity: product.stock_quantity.toString(),
                                   is_featured: Boolean(product.is_featured),
+                                  image_url: product.images?.[0]?.image_url || '',
                                 })
                                 setProductModal(true)
                               }}
@@ -666,6 +771,114 @@ export default function AdminPage() {
             </div>
           </div>
         )}
+
+        {/* Navigation Tab */}
+        {activeTab === 'navigation' && (
+          <div>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold">Navigation Items</h2>
+              <Button
+                variant="primary"
+                onClick={() => {
+                  setEditingNav(null)
+                  setNavForm({
+                    label: '',
+                    href: '',
+                    parent_id: '',
+                    type: 'link',
+                    target: '_self',
+                    icon: '',
+                    display_order: 0,
+                    is_active: true,
+                    location: 'header',
+                  })
+                  setNavModal(true)
+                }}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Nav Item
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {navItems.map(item => (
+                <Card key={item.id}>
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h3 className="font-semibold text-lg">{item.label}</h3>
+                        <p className="text-sm text-gray-500 capitalize">{item.type}</p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingNav(item)
+                            setNavForm({
+                              label: item.label,
+                              href: item.href,
+                              parent_id: item.parent_id?.toString() || '',
+                              type: item.type,
+                              target: item.target,
+                              icon: item.icon || '',
+                              display_order: item.display_order,
+                              is_active: item.is_active === 1,
+                              location: item.location,
+                            })
+                            setNavModal(true)
+                          }}
+                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                        >
+                          <Edit2 className="h-4 w-4 text-blue-600" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => deleteNav(item.id)}
+                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                        >
+                          <Trash2 className="h-4 w-4 text-red-600" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center text-sm">
+                        <span className="text-gray-500 w-20">Href:</span>
+                        <span className="text-xs font-mono bg-gray-100 px-2 py-1 rounded truncate flex-1">
+                          {item.href}
+                        </span>
+                      </div>
+                      <div className="flex items-center text-sm">
+                        <span className="text-gray-500 w-20">Order:</span>
+                        <span className="font-medium">{item.display_order}</span>
+                      </div>
+                      <div className="flex items-center text-sm">
+                        <span className="text-gray-500 w-20">Status:</span>
+                        <span
+                          className={`px-2 py-1 rounded text-xs font-medium ${
+                            item.is_active
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-gray-100 text-gray-600'
+                          }`}
+                        >
+                          {item.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+
+              {navItems.length === 0 && (
+                <div className="col-span-full text-center py-12 text-gray-500">
+                  <Menu className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                  <p>No navigation items yet.</p>
+                  <p className="text-sm mt-2">Click "Add Nav Item" to get started.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Product Modal */}
@@ -688,6 +901,17 @@ export default function AdminPage() {
             value={productForm.description}
             onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
           />
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Product Image
+            </label>
+            <ImageUpload
+              value={productForm.image_url}
+              onChange={(url) => setProductForm({ ...productForm, image_url: url })}
+              onRemove={() => setProductForm({ ...productForm, image_url: '' })}
+            />
+          </div>
 
           <div className="grid grid-cols-2 gap-4">
             <Input
@@ -854,6 +1078,106 @@ export default function AdminPage() {
           </div>
         </div>
       </Modal>
-    </div>
+
+      {/* Navigation Modal */}
+      <Modal
+        isOpen={navModal}
+        onClose={() => setNavModal(false)}
+        title={editingNav ? 'Edit Navigation Item' : 'Add Navigation Item'}
+        size="lg"
+      >
+        <div className="space-y-4">
+          <Input
+            label="Label"
+            value={navForm.label}
+            onChange={(e) => setNavForm({ ...navForm, label: e.target.value })}
+            required
+          />
+
+          <Input
+            label="Href / URL"
+            value={navForm.href}
+            onChange={(e) => setNavForm({ ...navForm, href: e.target.value })}
+            placeholder="/products or https://example.com"
+            required
+          />
+
+          <div className="grid grid-cols-2 gap-4">
+            <Select
+              label="Type"
+              value={navForm.type}
+              onChange={(e) => setNavForm({ ...navForm, type: e.target.value })}
+              options={[
+                { value: 'link', label: 'Link' },
+                { value: 'button', label: 'Button' },
+                { value: 'dropdown', label: 'Dropdown' },
+                { value: 'group', label: 'Group' },
+              ]}
+              required
+            />
+
+            <Select
+              label="Target"
+              value={navForm.target}
+              onChange={(e) => setNavForm({ ...navForm, target: e.target.value })}
+              options={[
+                { value: '_self', label: 'Same Tab' },
+                { value: '_blank', label: 'New Tab' },
+              ]}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <Select
+              label="Location"
+              value={navForm.location}
+              onChange={(e) => setNavForm({ ...navForm, location: e.target.value })}
+              options={[
+                { value: 'header', label: 'Header' },
+                { value: 'footer', label: 'Footer' },
+              ]}
+            />
+
+            <Input
+              label="Display Order"
+              type="number"
+              value={navForm.display_order.toString()}
+              onChange={(e) => setNavForm({ ...navForm, display_order: parseInt(e.target.value) || 0 })}
+              helperText="Lower numbers appear first"
+            />
+          </div>
+
+          <Input
+            label="Icon (optional)"
+            value={navForm.icon}
+            onChange={(e) => setNavForm({ ...navForm, icon: e.target.value })}
+            placeholder="lucide-react icon name"
+          />
+
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="nav-active"
+              checked={navForm.is_active}
+              onChange={(e) => setNavForm({ ...navForm, is_active: e.target.checked })}
+              className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+            />
+            <label htmlFor="nav-active" className="text-sm font-medium text-gray-700">
+              Active
+            </label>
+          </div>
+
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={() => setNavModal(false)} fullWidth>
+              Cancel
+            </Button>
+            <Button variant="primary" onClick={saveNav} fullWidth>
+              {editingNav ? 'Update' : 'Create'} Nav Item
+            </Button>
+          </div>
+        </div>
+      </Modal>
+      </div>
+    </AdminAuth>
   )
 }

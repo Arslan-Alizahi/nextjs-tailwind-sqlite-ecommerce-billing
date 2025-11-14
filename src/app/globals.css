@@ -74,23 +74,75 @@
 
   /* Print styles */
   @media print {
-    .no-print {
+    /* Reset body styles for print */
+    body {
+      font-size: 12pt;
+      background: white !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+
+    /* Hide navigation, headers, footers */
+    nav, header, footer {
       display: none !important;
     }
 
-    .print-only {
+    /* Hide the billing page content but keep the receipt modal */
+    body > div:not(:has(.print-receipt-content)) {
+      display: none !important;
+    }
+
+    /* Make the modal container visible and full width */
+    body > div:has(.print-receipt-content) {
       display: block !important;
+      position: static !important;
+      background: white !important;
+      padding: 0 !important;
+      margin: 0 !important;
     }
 
-    body {
-      font-size: 12pt;
+    /* Show the receipt content */
+    .print-receipt-content {
+      display: block !important;
+      position: static !important;
+      max-width: 100% !important;
+      max-height: none !important;
+      overflow: visible !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      margin: 0 auto !important;
+      padding: 20px !important;
     }
 
-    .receipt-print {
-      width: 80mm;
-      margin: 0;
-      padding: 0;
-      font-family: monospace;
+    /* Remove shadows and borders for print */
+    * {
+      box-shadow: none !important;
+      text-shadow: none !important;
+    }
+
+    /* Ensure proper page breaks */
+    table, img, svg {
+      page-break-inside: avoid;
+    }
+
+    /* Optimize colors for print */
+    .bg-gray-50, .bg-gray-100 {
+      background: white !important;
+    }
+
+    /* Ensure text is black for print */
+    .text-gray-600, .text-gray-500 {
+      color: #333 !important;
+    }
+
+    /* Hide screen-only elements */
+    .print\\:hidden {
+      display: none !important;
+    }
+
+    /* Show print-only elements */
+    .print\\:block {
+      display: block !important;
     }
   }
 }

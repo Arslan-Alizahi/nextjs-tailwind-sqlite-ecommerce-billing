@@ -9,6 +9,7 @@ import Select from '@/components/ui/Select'
 import Modal from '@/components/ui/Modal'
 import { Spinner } from '@/components/ui/Spinner'
 import { useToast } from '@/components/ui/Toast'
+import { PrintReceipt } from '@/components/ui/PrintReceipt'
 import { Search, Plus, Minus, Trash2, Receipt, DollarSign, Package } from 'lucide-react'
 import { formatCurrency, generateReceiptNumber, calculateTax, calculateTotal } from '@/lib/utils'
 import { Product } from '@/types/product'
@@ -23,6 +24,8 @@ export default function BillingPage() {
   const [paymentModal, setPaymentModal] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState('cash')
   const [amountPaid, setAmountPaid] = useState('')
+  const [currentReceipt, setCurrentReceipt] = useState<any>(null)
+  const [showReceipt, setShowReceipt] = useState(false)
   const { addToast } = useToast()
 
   // Calculate totals
@@ -135,8 +138,9 @@ export default function BillingPage() {
 
       if (data.success) {
         addToast('Receipt created successfully!', 'success')
-        // Print receipt (in real app, would open print dialog)
-        console.log('Receipt:', data.data)
+        // Show print receipt modal
+        setCurrentReceipt(data.data)
+        setShowReceipt(true)
         clearCart()
         setPaymentModal(false)
         // Refresh products to update stock
@@ -378,6 +382,17 @@ export default function BillingPage() {
           </div>
         </div>
       </Modal>
+
+      {/* Print Receipt Modal */}
+      {showReceipt && currentReceipt && (
+        <PrintReceipt
+          receipt={currentReceipt}
+          onClose={() => {
+            setShowReceipt(false)
+            setCurrentReceipt(null)
+          }}
+        />
+      )}
     </div>
   )
 }
