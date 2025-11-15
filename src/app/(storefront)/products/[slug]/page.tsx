@@ -6,17 +6,19 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ShoppingCart, Heart, Share2, ChevronRight, Minus, Plus, Check, X } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
-import { Card } from '@/components/ui/Card'
-import { Badge } from '@/components/ui/Badge'
+import Button from '@/components/ui/Button'
+import Card from '@/components/ui/Card'
+import Badge from '@/components/ui/Badge'
 import { useCart } from '@/hooks/useCart'
-import { toast } from '@/components/ui/Toast'
-import { Product } from '@/types/product'
+import { useFavorites } from '@/hooks/useFavorites'
+import { useToast } from '@/components/ui/Toast'
 
 export default function ProductDetailPage() {
   const params = useParams()
   const router = useRouter()
   const { addToCart } = useCart()
+  const { toggleFavorite, isFavorite: checkIsFavorite } = useFavorites()
+  const { addToast } = useToast()
   const [product, setProduct] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [selectedImage, setSelectedImage] = useState(0)
@@ -37,7 +39,7 @@ export default function ProductDetailPage() {
         setProduct(data)
       } catch (error) {
         console.error('Error:', error)
-        toast.error('Failed to load product')
+        addToast('Failed to load product', 'error')
       } finally {
         setLoading(false)
       }
@@ -46,20 +48,74 @@ export default function ProductDetailPage() {
     if (params.slug) {
       fetchProduct()
     }
-  }, [params.slug, router])
+  }, [params.slug, router, addToast])
 
   const handleAddToCart = () => {
     if (!product) return
-    
+
     addToCart({
-      id: product.id,
-      name: product.name,
+      product_id: product.id,
+      product_name: product.name,
+      product_slug: product.slug,
+      product_image: product.images?.[0]?.image_url || '/placeholder.png',
+      product_sku: product.sku,
+      quantity: quantity,
+      unit_price: product.price,
+      stock_quantity: product.stock_quantity,
+    })
+
+    addToast(`${product.name} added to cart!`, 'success')
+  }
+
+  const handleToggleFavorite = () => {
+    if (!product) return
+
+    const isNowFavorite = toggleFavorite({
+      product_id: product.id,
+      product_name: product.name,
+      product_slug: product.slug,
+      product_image: product.images?.[0]?.image_url || '/placeholder.png',
+      product_sku: product.sku,
       price: product.price,
-      image: product.images?.[0]?.image_url || '/placeholder.png',
-      stock: product.stock_quantity,
-    }, quantity)
-    
-    toast.success(`${product.name} added to cart!`)
+      compare_at_price: product.compare_at_price,
+      stock_quantity: product.stock_quantity,
+    })
+
+    if (isNowFavorite) {
+      addToast(`${product.name} added to favorites!`, 'success')
+    } else {
+      addToast(`${product.name} removed from favorites`, 'info')
+    }
+  }
+
+  const handleShare = async () => {
+    const shareData = {
+      title: product.name,
+      text: product.description,
+      url: window.location.href,
+    }
+
+    // Check if Web Share API is supported
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData)
+        addToast('Product shared successfully!', 'success')
+      } catch (error) {
+        // User cancelled or error occurred
+        if (error instanceof Error && error.name !== 'AbortError') {
+          console.error('Error sharing:', error)
+        }
+      }
+    } else {
+      // Fallback: Copy link to clipboard
+      try {
+        await navigator.clipboard.writeText(window.location.href)
+        addToast('Link copied to clipboard!', 'success')
+      } catch (error) {
+        console.error('Error copying to clipboard:', error)
+        addToast('Failed to copy link', 'error')
+      }
+    }
   }
 
   const incrementQuantity = () => {
@@ -101,20 +157,26 @@ export default function ProductDetailPage() {
           <Link href="/products" className="hover:text-primary-600 transition-colors">
             Products
           </Link>
-          {product.parent_category_name && (
+          {product.parent_category_name && product.parent_category_id && (
             <>
               <ChevronRight className="w-4 h-4" />
-              <span className="hover:text-primary-600 transition-colors cursor-pointer">
+              <Link
+                href={`/products?category=${product.parent_category_id}`}
+                className="hover:text-primary-600 transition-colors"
+              >
                 {product.parent_category_name}
-              </span>
+              </Link>
             </>
           )}
-          {product.category_name && (
+          {product.category_name && product.category_id && (
             <>
               <ChevronRight className="w-4 h-4" />
-              <span className="hover:text-primary-600 transition-colors cursor-pointer">
+              <Link
+                href={`/products?category=${product.category_id}`}
+                className="hover:text-primary-600 transition-colors"
+              >
                 {product.category_name}
-              </span>
+              </Link>
             </>
           )}
           <ChevronRight className="w-4 h-4" />
@@ -255,10 +317,19 @@ export default function ProductDetailPage() {
                     <ShoppingCart className="w-5 h-5 mr-2" />
                     Add to Cart
                   </Button>
-                  <Button variant="outline" size="lg">
-                    <Heart className="w-5 h-5" />
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={handleToggleFavorite}
+                    className={product && checkIsFavorite(product.id) ? 'text-red-500 border-red-500 hover:bg-red-50' : ''}
+                  >
+                    <Heart className={`w-5 h-5 ${product && checkIsFavorite(product.id) ? 'fill-current' : ''}`} />
                   </Button>
-                  <Button variant="outline" size="lg">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={handleShare}
+                  >
                     <Share2 className="w-5 h-5" />
                   </Button>
                 </div>

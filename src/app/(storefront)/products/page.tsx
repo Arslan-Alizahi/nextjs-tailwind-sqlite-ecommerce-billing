@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import Navbar from '@/components/layout/Navbar'
@@ -19,6 +20,7 @@ import { StockBadge } from '@/components/ui/Badge'
 import { useToast } from '@/components/ui/Toast'
 
 export default function ProductsPage() {
+  const searchParams = useSearchParams()
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -34,6 +36,17 @@ export default function ProductsPage() {
   const debouncedSearch = useDebounce(filters.search || '', 500)
   const { addToCart } = useCart()
   const { addToast } = useToast()
+
+  // Initialize filters from URL params
+  useEffect(() => {
+    const categoryParam = searchParams.get('category')
+    if (categoryParam) {
+      setFilters(prev => ({
+        ...prev,
+        category_id: parseInt(categoryParam)
+      }))
+    }
+  }, [searchParams])
 
   useEffect(() => {
     fetchCategories()

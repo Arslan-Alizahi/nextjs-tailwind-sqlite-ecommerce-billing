@@ -370,6 +370,31 @@ export default function AdminPage() {
     }
   }
 
+  const toggleNavActive = async (item: any) => {
+    try {
+      const res = await fetch(`/api/nav/${item.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...item,
+          is_active: item.is_active === 1 ? 0 : 1,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (data.success) {
+        addToast(`Nav item ${item.is_active === 1 ? 'deactivated' : 'activated'}`, 'success')
+        fetchData()
+      } else {
+        addToast('Failed to update nav item', 'error')
+      }
+    } catch (error) {
+      console.error('Error updating nav item:', error)
+      addToast('Failed to update nav item', 'error')
+    }
+  }
+
   // Calculate stats
   const totalProducts = products.length
   const totalOrders = orders.length
@@ -854,15 +879,17 @@ export default function AdminPage() {
                       </div>
                       <div className="flex items-center text-sm">
                         <span className="text-gray-500 w-20">Status:</span>
-                        <span
-                          className={`px-2 py-1 rounded text-xs font-medium ${
+                        <button
+                          type="button"
+                          onClick={() => toggleNavActive(item)}
+                          className={`px-2 py-1 rounded text-xs font-medium transition-colors hover:opacity-80 ${
                             item.is_active
-                              ? 'bg-green-100 text-green-700'
-                              : 'bg-gray-100 text-gray-600'
+                              ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                           }`}
                         >
                           {item.is_active ? 'Active' : 'Inactive'}
-                        </span>
+                        </button>
                       </div>
                     </div>
                   </CardContent>

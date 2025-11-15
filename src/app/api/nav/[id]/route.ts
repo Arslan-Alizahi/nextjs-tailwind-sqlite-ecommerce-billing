@@ -77,7 +77,7 @@ export async function PUT(
       body.target || '_self',
       body.icon || null,
       body.display_order || 0,
-      body.is_active !== false ? 1 : 0,
+      body.is_active ? 1 : 0,
       body.location || 'header',
       body.meta ? JSON.stringify(body.meta) : null,
       params.id

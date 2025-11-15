@@ -13,10 +13,11 @@ export async function GET(
     const product = db
       .prepare(
         `
-        SELECT 
+        SELECT
           p.*,
           c.name as category_name,
           c.slug as category_slug,
+          c.parent_id as parent_category_id,
           pc.name as parent_category_name,
           pc.slug as parent_category_slug
         FROM products p

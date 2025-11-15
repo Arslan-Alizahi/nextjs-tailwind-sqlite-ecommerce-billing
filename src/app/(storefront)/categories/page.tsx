@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Card } from '@/components/ui/Card'
+import Card from '@/components/ui/Card'
 import { ChevronRight, Package } from 'lucide-react'
 import { Category } from '@/types/category'
 

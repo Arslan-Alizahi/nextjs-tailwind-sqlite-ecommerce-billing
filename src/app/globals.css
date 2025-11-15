@@ -87,18 +87,16 @@
       display: none !important;
     }
 
-    /* Hide the billing page content but keep the receipt modal */
-    body > div:not(:has(.print-receipt-content)) {
+    /* Hide the billing page main content */
+    .min-h-screen:not(.print-receipt-content) {
       display: none !important;
     }
 
-    /* Make the modal container visible and full width */
-    body > div:has(.print-receipt-content) {
-      display: block !important;
+    /* Show the receipt modal container */
+    .fixed.inset-0 {
       position: static !important;
       background: white !important;
-      padding: 0 !important;
-      margin: 0 !important;
+      display: block !important;
     }
 
     /* Show the receipt content */
