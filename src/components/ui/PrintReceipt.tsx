@@ -31,12 +31,21 @@ interface PrintReceiptProps {
 
 export function PrintReceipt({ receipt, onClose }: PrintReceiptProps) {
   const handlePrint = () => {
+    // Add print class to body
+    document.body.classList.add('printing-receipt')
+
+    // Trigger print
     window.print()
+
+    // Remove print class after printing
+    setTimeout(() => {
+      document.body.classList.remove('printing-receipt')
+    }, 100)
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 print:bg-white print:block print:relative print:inset-auto">
-      <div className="print-receipt-content bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-auto print:shadow-none print:max-w-full print:max-h-full print:overflow-visible">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 print:bg-white print:block print:static print:inset-auto">
+      <div className="print-receipt-content bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-auto print:shadow-none print:max-w-full print:max-h-full print:overflow-visible print:rounded-none">
         {/* Print-only header */}
         <div className="hidden print:block text-center mb-6">
           <h1 className="text-3xl font-bold">ModernStore</h1>
