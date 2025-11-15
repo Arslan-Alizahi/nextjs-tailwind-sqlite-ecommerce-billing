@@ -147,6 +147,27 @@ export const createTables = `
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 
+  -- Revenue transactions table (tracks all revenue from store and billing)
+  CREATE TABLE IF NOT EXISTS revenue_transactions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    transaction_type TEXT NOT NULL, -- 'store' or 'billing'
+    reference_id INTEGER NOT NULL, -- order_id or receipt_id
+    reference_number TEXT NOT NULL, -- order_number or receipt_number
+    customer_name TEXT,
+    customer_email TEXT,
+    customer_phone TEXT,
+    subtotal DECIMAL(10, 2) NOT NULL,
+    tax DECIMAL(10, 2) DEFAULT 0,
+    discount DECIMAL(10, 2) DEFAULT 0,
+    shipping_cost DECIMAL(10, 2) DEFAULT 0,
+    total DECIMAL(10, 2) NOT NULL,
+    payment_method TEXT,
+    payment_status TEXT DEFAULT 'completed',
+    notes TEXT,
+    transaction_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
   -- Indexes for better performance
   CREATE INDEX IF NOT EXISTS idx_products_category ON products(category_id);
   CREATE INDEX IF NOT EXISTS idx_products_sku ON products(sku);
@@ -159,6 +180,9 @@ export const createTables = `
   CREATE INDEX IF NOT EXISTS idx_nav_items_parent ON nav_items(parent_id);
   CREATE INDEX IF NOT EXISTS idx_nav_items_location ON nav_items(location);
   CREATE INDEX IF NOT EXISTS idx_social_media_display_order ON social_media_links(display_order);
+  CREATE INDEX IF NOT EXISTS idx_revenue_transaction_type ON revenue_transactions(transaction_type);
+  CREATE INDEX IF NOT EXISTS idx_revenue_transaction_date ON revenue_transactions(transaction_date);
+  CREATE INDEX IF NOT EXISTS idx_revenue_reference ON revenue_transactions(transaction_type, reference_id);
 `;
 
 export const createTriggers = `
@@ -195,5 +219,121 @@ export const createTriggers = `
   AFTER UPDATE ON social_media_links
   BEGIN
     UPDATE social_media_links SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+  END;
+
+  -- Auto-create revenue transaction when billing receipt is created
+  CREATE TRIGGER IF NOT EXISTS create_revenue_from_billing
+  AFTER INSERT ON billing_receipts
+  BEGIN
+    INSERT INTO revenue_transactions (
+      transaction_type,
+      reference_id,
+      reference_number,
+      customer_name,
+      customer_phone,
+      subtotal,
+      tax,
+      discount,
+      total,
+      payment_method,
+      payment_status,
+      notes,
+      transaction_date
+    ) VALUES (
+      'billing',
+      NEW.id,
+      NEW.receipt_number,
+      NEW.customer_name,
+      NEW.customer_phone,
+      NEW.subtotal,
+      NEW.tax,
+      NEW.discount,
+      NEW.total,
+      NEW.payment_method,
+      'completed',
+      NEW.notes,
+      NEW.created_at
+    );
+  END;
+
+  -- Auto-create revenue transaction when order is created (only if paid)
+  CREATE TRIGGER IF NOT EXISTS create_revenue_from_order
+  AFTER INSERT ON orders
+  WHEN NEW.payment_status = 'completed' OR NEW.payment_status = 'paid'
+  BEGIN
+    INSERT INTO revenue_transactions (
+      transaction_type,
+      reference_id,
+      reference_number,
+      customer_name,
+      customer_email,
+      customer_phone,
+      subtotal,
+      tax,
+      discount,
+      shipping_cost,
+      total,
+      payment_method,
+      payment_status,
+      notes,
+      transaction_date
+    ) VALUES (
+      'store',
+      NEW.id,
+      NEW.order_number,
+      NEW.customer_name,
+      NEW.customer_email,
+      NEW.customer_phone,
+      NEW.subtotal,
+      NEW.tax,
+      NEW.discount,
+      NEW.shipping_cost,
+      NEW.total,
+      NEW.payment_method,
+      NEW.payment_status,
+      NEW.notes,
+      NEW.created_at
+    );
+  END;
+
+  -- Update revenue transaction when order payment status changes to completed
+  CREATE TRIGGER IF NOT EXISTS update_revenue_on_order_payment
+  AFTER UPDATE ON orders
+  WHEN (OLD.payment_status != 'completed' AND OLD.payment_status != 'paid')
+    AND (NEW.payment_status = 'completed' OR NEW.payment_status = 'paid')
+  BEGIN
+    INSERT INTO revenue_transactions (
+      transaction_type,
+      reference_id,
+      reference_number,
+      customer_name,
+      customer_email,
+      customer_phone,
+      subtotal,
+      tax,
+      discount,
+      shipping_cost,
+      total,
+      payment_method,
+      payment_status,
+      notes,
+      transaction_date
+    ) VALUES (
+      'store',
+      NEW.id,
+      NEW.order_number,
+      NEW.customer_name,
+      NEW.customer_email,
+      NEW.customer_phone,
+      NEW.subtotal,
+      NEW.tax,
+      NEW.discount,
+      NEW.shipping_cost,
+      NEW.total,
+      NEW.payment_method,
+      NEW.payment_status,
+      NEW.notes,
+      NEW.updated_at
+    );
   END;
 `;

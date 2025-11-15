@@ -57,6 +57,22 @@ export const getDb = (): Database.Database => {
         db.exec(createTriggers)
         seedDatabase(db)
       }
+
+      // Check if revenue_transactions table exists (migration)
+      const revenueTableCheck = db.prepare(`
+        SELECT name FROM sqlite_master
+        WHERE type='table' AND name='revenue_transactions'
+      `).get()
+
+      if (!revenueTableCheck) {
+        console.log('Revenue table not found, running migration...')
+        try {
+          const { migrateRevenue } = require('./migrate-revenue')
+          migrateRevenue()
+        } catch (error) {
+          console.error('Failed to run revenue migration:', error)
+        }
+      }
     }
   }
 

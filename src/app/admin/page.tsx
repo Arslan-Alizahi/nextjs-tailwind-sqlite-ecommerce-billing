@@ -441,43 +441,87 @@ export default function AdminPage() {
 
         {/* Dashboard */}
         {activeTab === 'dashboard' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Total Products</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-3xl font-bold text-primary-600">{totalProducts}</p>
-              </CardContent>
-            </Card>
+          <div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Total Products</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold text-primary-600">{totalProducts}</p>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Total Orders</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-3xl font-bold text-green-600">{totalOrders}</p>
-              </CardContent>
-            </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Total Orders</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold text-green-600">{totalOrders}</p>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Revenue</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-3xl font-bold text-blue-600">
-                  {formatCurrency(totalRevenue)}
-                </p>
-              </CardContent>
-            </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Store Revenue</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold text-blue-600">
+                    {formatCurrency(totalRevenue)}
+                  </p>
+                  <p className="text-sm text-gray-500">From online orders</p>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Low Stock Alert</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-3xl font-bold text-red-600">{lowStockProducts}</p>
-                <p className="text-sm text-gray-500">Products need restocking</p>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Low Stock Alert</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold text-red-600">{lowStockProducts}</p>
+                  <p className="text-sm text-gray-500">Products need restocking</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Revenue Management Card */}
+            <Card hover3D className="bg-gradient-to-br from-primary-50 to-blue-50 border-2 border-primary-200">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+                      Revenue Management
+                    </h3>
+                    <p className="text-gray-600">
+                      Track and analyze revenue from both online store and local billing
+                    </p>
+                  </div>
+                  <div className="p-4 bg-primary-100 rounded-lg">
+                    <DollarSign className="h-10 w-10 text-primary-600" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4 mb-6">
+                  <div className="bg-white rounded-lg p-4">
+                    <p className="text-sm text-gray-600 mb-1">Total Revenue</p>
+                    <p className="text-lg font-bold text-gray-900">View Details</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-4">
+                    <p className="text-sm text-gray-600 mb-1">Store vs Billing</p>
+                    <p className="text-lg font-bold text-gray-900">Compare</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-4">
+                    <p className="text-sm text-gray-600 mb-1">Export Data</p>
+                    <p className="text-lg font-bold text-gray-900">CSV</p>
+                  </div>
+                </div>
+
+                <Link href="/admin/revenue">
+                  <Button variant="primary" size="lg" fullWidth>
+                    <DollarSign className="h-5 w-5 mr-2" />
+                    Open Revenue Dashboard
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
           </div>
