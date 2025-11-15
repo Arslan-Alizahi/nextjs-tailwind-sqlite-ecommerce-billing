@@ -74,18 +74,31 @@
 
   /* Print styles - ULTRA SIMPLIFIED */
   @media print {
+    /* Remove browser default headers/footers (URL, date, etc) */
     @page {
-      margin: 10mm;
+      margin: 0;
+      size: auto;
     }
 
-    body {
+    html, body {
       background: white !important;
+      margin: 0 !important;
+      padding: 0 !important;
     }
 
     /* Remove all shadows */
     * {
       box-shadow: none !important;
       text-shadow: none !important;
+    }
+
+    /* HIDE NAVBAR COMPLETELY */
+    nav,
+    [class*="Navbar"],
+    [class*="navbar"],
+    header {
+      display: none !important;
+      visibility: hidden !important;
     }
 
     /* Hide everything on the billing page EXCEPT the modal */
@@ -103,23 +116,33 @@
       position: static !important;
       background: white !important;
       inset: auto !important;
+      margin: 0 !important;
+      padding: 0 !important;
     }
 
-    /* Ensure receipt content takes full width */
+    /* Ensure receipt content takes full width with minimal spacing */
     .print-receipt-content {
       max-width: 100% !important;
-      padding: 20px !important;
+      padding: 10mm 15mm !important;
+      margin: 0 auto !important;
+      page-break-after: avoid !important;
+      page-break-before: avoid !important;
+    }
+
+    /* Prevent page breaks in receipt content */
+    .print-receipt-content * {
+      page-break-inside: avoid !important;
     }
 
     /* Ensure tables print correctly */
     .print-receipt-content table {
-      page-break-inside: auto !important;
       width: 100% !important;
+      page-break-inside: avoid !important;
     }
 
     .print-receipt-content tr {
       page-break-inside: avoid !important;
-      page-break-after: auto !important;
+      page-break-after: avoid !important;
     }
 
     .print-receipt-content thead {
