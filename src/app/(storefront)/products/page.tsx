@@ -49,11 +49,6 @@ function ProductsContent() {
     const categoryParam = searchParams.get('category')
     const newCategoryId = categoryParam ? parseInt(categoryParam) : undefined
 
-    console.log('=== URL CHANGED ===')
-    console.log('Category param from URL:', categoryParam)
-    console.log('Parsed category ID:', newCategoryId)
-    console.log('Full URL:', window.location.href)
-
     setFilters(prev => ({
       ...prev,
       category_id: newCategoryId
@@ -91,9 +86,6 @@ function ProductsContent() {
       if (filters.sort_order) params.append('sort_order', filters.sort_order)
       params.append('page', currentPage.toString())
       params.append('limit', '12')
-
-      console.log('Fetching products with params:', params.toString()) // Debug log
-      console.log('Current category_id filter:', filters.category_id) // Debug log
 
       const res = await fetch(`/api/products?${params}`)
       const data = await res.json()
@@ -175,8 +167,6 @@ function ProductsContent() {
               value={filters.category_id?.toString() || ''}
               onChange={(e) => {
                 const value = e.target.value
-                console.log('Category dropdown changed to:', value)
-
                 // Update URL to match the selection
                 if (value) {
                   router.push(`${pathname}?category=${value}`)
