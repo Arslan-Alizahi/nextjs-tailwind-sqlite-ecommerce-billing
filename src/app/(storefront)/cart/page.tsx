@@ -29,6 +29,8 @@ export default function CartPage() {
   const shipping = 0 // Free shipping for now
   const total = calculateTotal(subtotal, tax, shipping, 0)
 
+  const [isProcessing, setIsProcessing] = useState(false)
+
   const handleCheckout = async () => {
     if (cart.length === 0) {
       addToast('Your cart is empty', 'error')
@@ -40,8 +42,11 @@ export default function CartPage() {
       return
     }
 
+    setIsProcessing(true)
+
     try {
-      const res = await fetch('/api/orders', {
+      // Step 1: Create order with pending payment status
+      const orderRes = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -59,22 +64,59 @@ export default function CartPage() {
           })),
           tax,
           shipping_cost: shipping,
-          payment_method: 'pending',
+          payment_method: 'stripe', // Stripe payment
         }),
       })
 
-      const data = await res.json()
+      const orderData = await orderRes.json()
 
-      if (data.success) {
-        addToast('Order placed successfully!', 'success')
-        clearCart()
-        router.push('/')
-      } else {
-        addToast(data.message || 'Failed to place order', 'error')
+      if (!orderData.success) {
+        addToast(orderData.message || 'Failed to create order', 'error')
+        setIsProcessing(false)
+        return
       }
+
+      const order = orderData.data
+
+      // Step 2: Create Stripe payment link
+      addToast('Order created! Creating payment link...', 'success')
+
+      const paymentRes = await fetch('/api/stripe/create-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId: order.id
+        }),
+      })
+
+      const paymentData = await paymentRes.json()
+
+      if (!paymentData.success) {
+        addToast(paymentData.message || 'Failed to create payment link', 'error')
+        setIsProcessing(false)
+        return
+      }
+
+      // Clear cart before redirecting to payment
+      clearCart()
+
+      // Step 3: Redirect to Stripe payment page
+      if (paymentData.data.paymentUrl) {
+        addToast('Redirecting to Stripe payment...', 'success')
+        // Redirect to Stripe payment link
+        window.location.href = paymentData.data.paymentUrl
+      } else {
+        // Fallback: redirect to success page if no payment URL
+        addToast('Payment link not available, redirecting...', 'info')
+        setTimeout(() => {
+          router.push(`/order/success?orderId=${order.id}`)
+        }, 1500)
+      }
+
     } catch (error) {
       console.error('Error placing order:', error)
       addToast('Failed to place order', 'error')
+      setIsProcessing(false)
     }
   }
 
@@ -240,8 +282,9 @@ export default function CartPage() {
                 fullWidth
                 className="mt-6"
                 onClick={handleCheckout}
+                disabled={isProcessing}
               >
-                Place Order
+                {isProcessing ? 'Processing...' : 'Place Order & Pay'}
               </Button>
               <p className="text-xs text-center text-gray-500 mt-3">
                 By placing this order, you agree to our terms and conditions

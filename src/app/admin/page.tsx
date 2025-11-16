@@ -370,6 +370,33 @@ export default function AdminPage() {
     }
   }
 
+  const handleMarkAsPaid = async (orderId: number) => {
+    if (!confirm('Mark this order as paid? This will record the revenue.')) return
+
+    try {
+      const res = await fetch(`/api/orders/${orderId}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          paymentStatus: 'paid',
+          paymentMethod: 'manual', // Admin manually marked as paid
+        }),
+      })
+
+      const data = await res.json()
+
+      if (data.success) {
+        addToast('Order marked as paid successfully!', 'success')
+        fetchData() // Refresh orders list
+      } else {
+        addToast(data.message || 'Failed to update order', 'error')
+      }
+    } catch (error) {
+      console.error('Error updating order:', error)
+      addToast('Failed to update order', 'error')
+    }
+  }
+
   const toggleNavActive = async (item: any) => {
     try {
       const res = await fetch(`/api/nav/${item.id}`, {
@@ -700,8 +727,10 @@ export default function AdminPage() {
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Order #</th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Customer</th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Total</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Status</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Order Status</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Payment Status</th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Date</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
@@ -720,8 +749,32 @@ export default function AdminPage() {
                       <td className="px-4 py-3">
                         <StatusBadge status={order.status} />
                       </td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          order.payment_status === 'paid' || order.payment_status === 'completed'
+                            ? 'bg-green-100 text-green-800'
+                            : order.payment_status === 'pending'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : order.payment_status === 'failed'
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {order.payment_status || 'pending'}
+                        </span>
+                      </td>
                       <td className="px-4 py-3 text-sm text-gray-500">
                         {new Date(order.created_at).toLocaleDateString()}
+                      </td>
+                      <td className="px-4 py-3">
+                        {(order.payment_status === 'pending') && (
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            onClick={() => handleMarkAsPaid(order.id)}
+                          >
+                            Mark as Paid
+                          </Button>
+                        )}
                       </td>
                     </tr>
                   ))}

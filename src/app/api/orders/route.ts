@@ -99,8 +99,8 @@ export async function POST(request: NextRequest) {
         discount,
         total,
         'pending',
-        body.payment_method || 'pending',
-        'pending',
+        body.payment_method || 'stripe', // Default to stripe for online orders
+        'pending', // Start with pending, will be updated after successful payment
         body.notes || null
       )
 

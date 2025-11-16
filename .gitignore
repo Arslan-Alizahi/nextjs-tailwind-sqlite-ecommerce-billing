@@ -36,6 +36,17 @@ yarn-error.log*
 next-env.d.ts
 .claude/settings.local.json
 nul
+
+# Database files - DO NOT COMMIT
 data/ecommerce.db
+data/ecommerce.db-shm
+data/ecommerce.db-wal
+data/*.db
+data/*.db-shm
+data/*.db-wal
+
+# Uploaded files
 public/uploads/products/1763197058763-zb442r6xfy.png
 data/ecommerce.db
+data/ecommerce.db-shm
+data/ecommerce.db-wal
