@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { Suspense, useEffect, useState } from 'react'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import Navbar from '@/components/layout/Navbar'
@@ -19,13 +19,20 @@ import { useDebounce } from '@/hooks/useDebounce'
 import { StockBadge } from '@/components/ui/Badge'
 import { useToast } from '@/components/ui/Toast'
 
-export default function ProductsPage() {
+function ProductsContent() {
   const searchParams = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [isLoading, setIsLoading] = useState(true)
+
+  // Initialize filters from URL params immediately
+  const categoryParam = searchParams.get('category')
+  const initialCategoryId = categoryParam ? parseInt(categoryParam) : undefined
+
   const [filters, setFilters] = useState<ProductFilter>({
-    category_id: undefined,
+    category_id: initialCategoryId,
     search: '',
     sort_by: 'created_at',
     sort_order: 'desc',
@@ -37,15 +44,21 @@ export default function ProductsPage() {
   const { addToCart } = useCart()
   const { addToast } = useToast()
 
-  // Initialize filters from URL params
+  // Update filters when URL changes
   useEffect(() => {
     const categoryParam = searchParams.get('category')
-    if (categoryParam) {
-      setFilters(prev => ({
-        ...prev,
-        category_id: parseInt(categoryParam)
-      }))
-    }
+    const newCategoryId = categoryParam ? parseInt(categoryParam) : undefined
+
+    console.log('=== URL CHANGED ===')
+    console.log('Category param from URL:', categoryParam)
+    console.log('Parsed category ID:', newCategoryId)
+    console.log('Full URL:', window.location.href)
+
+    setFilters(prev => ({
+      ...prev,
+      category_id: newCategoryId
+    }))
+    setCurrentPage(1) // Reset to first page when category changes
   }, [searchParams])
 
   useEffect(() => {
@@ -78,6 +91,9 @@ export default function ProductsPage() {
       if (filters.sort_order) params.append('sort_order', filters.sort_order)
       params.append('page', currentPage.toString())
       params.append('limit', '12')
+
+      console.log('Fetching products with params:', params.toString()) // Debug log
+      console.log('Current category_id filter:', filters.category_id) // Debug log
 
       const res = await fetch(`/api/products?${params}`)
       const data = await res.json()
@@ -159,11 +175,14 @@ export default function ProductsPage() {
               value={filters.category_id?.toString() || ''}
               onChange={(e) => {
                 const value = e.target.value
-                setFilters({
-                  ...filters,
-                  category_id: value ? parseInt(value) : undefined,
-                })
-                setCurrentPage(1)
+                console.log('Category dropdown changed to:', value)
+
+                // Update URL to match the selection
+                if (value) {
+                  router.push(`${pathname}?category=${value}`)
+                } else {
+                  router.push(pathname)
+                }
               }}
             />
 
@@ -284,5 +303,22 @@ export default function ProductsPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-50">
+          <Navbar />
+          <div className="flex items-center justify-center h-screen">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+          </div>
+        </div>
+      }
+    >
+      <ProductsContent />
+    </Suspense>
   )
 }
