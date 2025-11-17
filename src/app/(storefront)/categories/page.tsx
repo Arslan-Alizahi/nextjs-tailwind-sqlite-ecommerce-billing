@@ -58,14 +58,14 @@ export default function CategoriesPage() {
           transition={{ duration: 0.5 }}
           className="text-center mb-12"
         >
-          <h1 className="text-5xl font-bold text-gray-900 mb-4">Shop by Category</h1>
-          <p className="text-xl text-gray-600">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4">Shop by Category</h1>
+          <p className="text-lg sm:text-xl text-gray-600">
             Browse our wide selection of products organized by category
           </p>
         </motion.div>
 
         {/* Categories Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {categoryTree.map((category, index) => (
             <motion.div
               key={category.id}
@@ -85,7 +85,7 @@ export default function CategoriesPage() {
                         <div className="p-3 bg-primary-100 rounded-lg">
                           <Package className="w-6 h-6 text-primary-600" />
                         </div>
-                        <h2 className="text-2xl font-bold text-gray-900 group-hover:text-primary-600 transition-colors">
+                        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 group-hover:text-primary-600 transition-colors">
                           {category.name}
                         </h2>
                       </div>

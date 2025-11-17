@@ -149,20 +149,20 @@ export default function ProductDetailPage() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
       <div className="container mx-auto px-4">
         {/* Breadcrumbs */}
-        <nav className="flex items-center space-x-2 text-sm text-gray-600 mb-8">
-          <Link href="/" className="hover:text-primary-600 transition-colors">
+        <nav className="flex items-center space-x-2 text-sm text-gray-600 mb-8 overflow-x-auto pb-2">
+          <Link href="/" className="hover:text-primary-600 transition-colors whitespace-nowrap">
             Home
           </Link>
-          <ChevronRight className="w-4 h-4" />
-          <Link href="/products" className="hover:text-primary-600 transition-colors">
+          <ChevronRight className="w-4 h-4 flex-shrink-0" />
+          <Link href="/products" className="hover:text-primary-600 transition-colors whitespace-nowrap">
             Products
           </Link>
           {product.parent_category_name && product.parent_category_id && (
             <>
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-4 h-4 flex-shrink-0" />
               <Link
                 href={`/products?category=${product.parent_category_id}`}
-                className="hover:text-primary-600 transition-colors"
+                className="hover:text-primary-600 transition-colors max-w-[100px] sm:max-w-none truncate"
               >
                 {product.parent_category_name}
               </Link>
@@ -170,21 +170,21 @@ export default function ProductDetailPage() {
           )}
           {product.category_name && product.category_id && (
             <>
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-4 h-4 flex-shrink-0" />
               <Link
                 href={`/products?category=${product.category_id}`}
-                className="hover:text-primary-600 transition-colors"
+                className="hover:text-primary-600 transition-colors max-w-[100px] sm:max-w-none truncate"
               >
                 {product.category_name}
               </Link>
             </>
           )}
-          <ChevronRight className="w-4 h-4" />
-          <span className="text-gray-900 font-medium">{product.name}</span>
+          <ChevronRight className="w-4 h-4 flex-shrink-0" />
+          <span className="text-gray-900 font-medium max-w-[150px] sm:max-w-none truncate">{product.name}</span>
         </nav>
 
         {/* Product Details */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 lg:gap-12 mb-16">
           {/* Image Gallery */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -238,8 +238,8 @@ export default function ProductDetailPage() {
             className="space-y-6"
           >
             <div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-2">{product.name}</h1>
-              <p className="text-gray-600">{product.description}</p>
+              <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">{product.name}</h1>
+              <p className="text-gray-600 text-sm sm:text-base">{product.description}</p>
             </div>
 
             {/* Price */}

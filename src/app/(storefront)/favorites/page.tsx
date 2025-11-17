@@ -73,8 +73,8 @@ export default function FavoritesPage() {
 
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-2 flex items-center">
-                <Heart className="w-8 h-8 mr-3 text-red-500 fill-current" />
+              <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2 flex items-center">
+                <Heart className="w-7 h-7 sm:w-8 sm:h-8 mr-3 text-red-500 fill-current" />
                 My Favorites
               </h1>
               <p className="text-gray-600">

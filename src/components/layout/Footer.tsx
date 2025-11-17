@@ -213,13 +213,13 @@ export default function Footer() {
             )}
 
             {/* Payment Methods */}
-            <div className="flex items-center space-x-2 text-gray-500 text-xs">
-              <span>We accept:</span>
-              <div className="flex space-x-2">
+            <div className="flex flex-wrap items-center gap-2 text-gray-500 text-xs">
+              <span className="whitespace-nowrap">We accept:</span>
+              <div className="flex flex-wrap gap-2">
                 {['VISA', 'MC', 'AMEX', 'PayPal'].map((method) => (
                   <div
                     key={method}
-                    className="px-2 py-1 bg-gray-800 rounded text-xs font-semibold"
+                    className="px-2 py-1 bg-gray-800 rounded text-xs font-semibold whitespace-nowrap"
                   >
                     {method}
                   </div>

@@ -166,38 +166,41 @@ export default function CartPage() {
                 transition={{ delay: index * 0.1 }}
               >
                 <Card>
-                  <div className="flex gap-4">
+                  <div className="flex gap-3 sm:gap-4">
                     <img
                       src={item.product_image || '/placeholder.svg'}
                       alt={item.product_name}
-                      className="w-24 h-24 object-cover rounded-lg"
+                      className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 object-cover rounded-lg flex-shrink-0"
                     />
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-lg">{item.product_name}</h3>
-                      <p className="text-sm text-gray-500 mb-2">SKU: {item.product_sku}</p>
-                      <p className="text-lg font-bold text-primary-600">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-base sm:text-lg truncate">{item.product_name}</h3>
+                      <p className="text-xs sm:text-sm text-gray-500 mb-2">SKU: {item.product_sku}</p>
+                      <p className="text-base sm:text-lg font-bold text-primary-600">
                         {formatCurrency(item.unit_price)}
                       </p>
                     </div>
-                    <div className="flex flex-col items-end gap-2">
+                    <div className="flex flex-col items-end gap-2 flex-shrink-0">
                       <button
                         onClick={() => removeFromCart(item.product_id)}
-                        className="text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors"
+                        className="text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors touch-manipulation"
+                        aria-label="Remove item"
                       >
                         <Trash2 className="h-5 w-5" />
                       </button>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1 sm:gap-2">
                         <button
                           onClick={() => updateQuantity(item.product_id, item.quantity - 1)}
-                          className="p-1 hover:bg-gray-100 rounded transition-colors"
+                          className="p-2 hover:bg-gray-100 rounded transition-colors touch-manipulation"
+                          aria-label="Decrease quantity"
                         >
                           <Minus className="h-4 w-4" />
                         </button>
-                        <span className="w-12 text-center font-medium">{item.quantity}</span>
+                        <span className="w-10 sm:w-12 text-center font-medium text-sm sm:text-base">{item.quantity}</span>
                         <button
                           onClick={() => updateQuantity(item.product_id, item.quantity + 1)}
                           disabled={item.quantity >= item.stock_quantity}
-                          className="p-1 hover:bg-gray-100 rounded transition-colors disabled:opacity-50"
+                          className="p-2 hover:bg-gray-100 rounded transition-colors disabled:opacity-50 touch-manipulation"
+                          aria-label="Increase quantity"
                         >
                           <Plus className="h-4 w-4" />
                         </button>
